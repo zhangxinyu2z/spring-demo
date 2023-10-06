@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop" xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd"> <!-- bean definitions here -->
+
+    <!--使用@Component来标识bean，扫描注入spring容器-->
+    <context:component-scan base-package="com.z2xinyu.aop"/>
+
+    <!--使用注解定义了Aspect后，只是表明该bean是一个切面，需要使用以下注解开启解析,和@EnableAspectJAutoProxy的作用一致-->
+    <aop:aspectj-autoproxy />
+
+    <!--以上标签的配置可代替下方的所有配置-->
+
+
+    <!-- 创建被代理对象和定义切面逻辑的对象，因为方法是由对象来调用的 -->
+    <bean id="audience" class="com.z2xinyu.aop.aspect.xml.Audience"/>
+    <bean id="performanceImpl" class="com.z2xinyu.aop.concert.PerformanceImpl"/>
+    <aop:config>
+
+        <!--可以声明一个或多个通知器、切面或者切点-->
+        <aop:aspect ref="audience" order="2"> <!--ref引用的bean中提供了通知所调用的方法-->
+            <!--将通用的切点表达式抽取到一个切点声明中，代替pointCut-->
+            <aop:pointcut id="performance" expression="execution(* com.z2xinyu.aop.concert.Performance.performance(..))"/>
+
+            <aop:before pointcut-ref="performance" method="silenceCellPhones"/>
+
+            <aop:before pointcut-ref="performance" method="takeSeats"/>
+
+            <aop:after-returning
+                    pointcut="execution(* com.z2xinyu.aop.concert.Performance.performance(String)) and args(show)"
+                    method="applause" returning="result"/>
+
+            <aop:after-throwing throwing="e" pointcut-ref="performance" method="demandRefund"/>
+        </aop:aspect>
+
+
+        <!-- 环绕通知， 和其他通知在一个aspect中如何处理？ https://www.zhihu.com/question/32326290/answer/55572235 -->
+        <aop:aspect ref="audience" order="1">
+            <aop:pointcut id="performance"
+                    expression="execution(* com.z2xinyu.aop.concert.Performance.performance(..))"/>
+
+            <aop:around pointcut-ref="performance" method="watchPerformance"/>
+
+        </aop:aspect>
+    </aop:config>
+
+</beans>

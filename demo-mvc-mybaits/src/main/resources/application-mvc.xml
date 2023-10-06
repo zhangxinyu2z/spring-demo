@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+        http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+    <!--springmvc的配置文件-->
+
+    <!-- 注解扫描装配ioc -->
+    <context:component-scan base-package="com.z2xinyu.mvc.mybatis"/>
+
+    <!-- 注解驱动 -->
+    <mvc:annotation-driven conversion-service="conversionServiceFactoryBean">
+        <!--对json的支持-->
+        <mvc:message-converters>
+            <!--使用jackson2Converter-->
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+            <!--@requestBody或@responseBody绑定入参通过converter处理parameter为字符串-->
+<!--            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        &lt;!&ndash;response.setContentType="UTF-8"&ndash;&gt;
+                        <value>text/html;charset="UTF-8"</value>
+                        &lt;!&ndash;json乱码&ndash;&gt;
+                        <value>application/json;charset="UTF-8"</value>
+                    </list>
+                </property>
+            </bean>-->
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+
+    <!-- 将拦截的请求的静态资源，交给服务器默认的servlet处理 img,css,js-->
+    <mvc:default-servlet-handler />
+
+    <!-- 配置Converter转换器 -->
+    <bean id="conversionServiceFactoryBean"
+          class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <!--set配置1个,list多个-->
+        <property name="converters">
+            <list>
+                <bean class="com.z2xinyu.mvc.mybatis.util.conversion.DateConverter"/>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 视图解析器 -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+    <!--    配置free marker模板引擎-->
+<!--    <bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+        &lt;!&ndash;指向web-inf下面的文件&ndash;&gt;
+        <property name="templateLoaderPath" value="/WEB-INF/ftl"/>
+        <property name="freemarkerSettings">
+            <props>
+                &lt;!&ndash;读取文件时的默认编码格式&ndash;&gt;
+                <prop key="defaultEncoding">utf-8</prop>
+            </props>
+        </property>
+    </bean>-->
+    <!--freemarker视图解析器-->
+<!--    <bean id="ViewResolver" class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+        <property name="contentType" value="text/html;charset=utf-8"/>
+        &lt;!&ndash; 匹配后缀名&ndash;&gt;
+        <property name="suffix" value=".ftl"/>
+    </bean>-->
+
+    <mvc:interceptors>
+        <!-- 多个拦截器 -->
+        <mvc:interceptor>
+            <!--
+			拦截器不会拦截.jsp
+            拦截规则：匹配的url路径
+			/ 拦截根目录
+           /* 一级目录 比如/item，/index  如果是子目录，比如/item/index，不会拦截，和servlet不同
+            /** 目录及其子目录中的所有文件，回拦截所有的请求  /add/user/user/...
+当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法
+            -->
+            <mvc:mapping path="/**"/>
+            <mvc:exclude-mapping path="/user/login"/>
+            <mvc:exclude-mapping path="/demo/**"/>
+            <!--具体的拦截器-->
+            <bean class="com.z2xinyu.mvc.mybatis.util.interceptor.LoginInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+    <!-- 异常处理器 -->
+    <bean id="customerHandlerExceptionResolver" class="com.z2xinyu.mvc.mybatis.util.exception.CustomerHandlerExceptionResolver"/>
+
+    <!-- 图片上传解析器 -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--上传图片大小-->
+        <property name="maxUploadSize" value="2048000"/>
+    </bean>
+
+    <!--开启自动代理-->
+    <aop:aspectj-autoproxy/>
+
+</beans>

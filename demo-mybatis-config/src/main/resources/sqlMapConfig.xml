@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!-- 加载外部配置文件 -->
+    <properties resource="jdbc.properties"/>
+
+    <!-- 别名，设置后不必再写全类名
+       typeAlias 设置单独的类
+       package 设置扫描包以其子包下所有类，不建议范围过大，有重复类   别名：头字母大小写都行
+   -->
+    <typeAliases>
+<!--        <typeAlias type="User" alias="User"/>-->
+        <package name="com.z2xinyu.mybatis.config"/>
+    </typeAliases>
+
+    <!-- 和spring整合后，不再使用environments配置 -->
+    <environments default="development">
+        <environment id="development">
+            <!-- 使用jdbc事务管理 -->
+            <transactionManager type="JDBC"/>
+            <!-- 数据库连接池 -->
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!--
+        扫描指定包下的Mapper接口，根据接口的命名规则来查找对应的 XML 文件进行关联，以下三种方式只能出现一种：
+            class：去指定的class下查找，根据名匹配，要求名字必须和类名一致
+            package：扫描指定包下的所有，同样是根据类名匹配
+            url：绝对路径，不建议使用
+    -->
+    <mappers>
+        <mapper resource="com.z2xinyu.mybatis.config.mapper/User.xml"/>
+        <!-- 		<mapper resource="sqlmap/User.xml" class="" url=""/> -->
+        <!-- 		<mapper class="com.itheima.mybatis.mapper.UserMapper" /> -->
+        <!-- 		<mapper url="" /> -->
+        <!--		<package name="com.itheima.mybatis.mapper"/>-->
+    </mappers>
+</configuration>

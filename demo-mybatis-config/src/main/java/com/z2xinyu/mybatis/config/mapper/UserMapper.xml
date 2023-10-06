@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 写Sql语句   -->
+<mapper namespace="com.z2xinyu.mybatis.config.mapper.UserMapper">
+	<!-- 通过ID查询一个用户 -->
+	<select id="findUserById" parameterType="Integer" resultType="User">
+		select * from user where id = #{v}
+	</select>
+	
+	<!-- //根据用户名称模糊查询用户列表
+	#{}    select * from user where id = ？    占位符  ? ==  '五'
+	${}    select * from user where username like '%五%'  字符串拼接  
+	
+	 -->
+	<select id="findUserByUsername" parameterType="String" resultType="User">
+		select * from user where username like "%"#{haha}"%"
+	</select>
+	
+	<!-- 添加用户 -->
+	<insert id="insert User" parameterType="com.z2xinyu.mybatis.config.po.User">
+		<selectKey keyProperty="id" resultType="Integer" order="AFTER">
+			select LAST_INSERT_ID()
+		</selectKey>
+		insert into user (username,birthday,address,sex) 
+		values (#{username},#{birthday},#{address},#{sex})
+	</insert>
+	
+	<!-- 更新 -->
+	<update id="updateUserById" parameterType="com.z2xinyu.mybatis.config.po.User">
+		update user 
+		set username = #{username},sex = #{sex},birthday = #{birthday},address = #{address}
+		where id = #{id}
+	</update>
+	
+	<!-- 删除 -->
+	<delete id="deleteUserById" parameterType="Integer">
+		delete from user 
+		where id = #{vvvvv}
+	</delete>
+
+	<!-- QueryVo中的User的usernam属性                              -->
+	<select id="queryUserByUserName" parameterType="QueryVo" resultType="User">
+		select * from user where username like '%${user.username}%'
+	</select>
+
+	<!-- 3 把重复的sql语句用sql提取出来  -->
+	<sql id="userFields">
+		select id,username,birthday,sex,address from user
+	</sql>
+
+	<!-- 2 where 和 if 的使用 -->
+	<select id="queryUserBySexAndName" parameterType="User" resultType="User">
+		<!-- 如果要使用其它mapper.xml中sql片断，在refid中使用`命名空间`.(sql的id)来调用-->
+		<include refid="userFields"/>
+		<!--where下的多条件查询，如果少提供了参数，就会导致数据的不合理性-->
+		<!--
+            再进一步，去掉where 1 = 1
+            where标签可以自动添加where关键字，同时处理sql语句中第一个and关键字
+         -->
+		<where>
+			<!--       where 1=1 -->
+
+			<!--        and sex=#{sex} and username like '%${username}%' -->
+			<if test="sex !=null and sex != ''">
+				and sex=#{sex}
+			</if>
+			<if test="username!=null and username !=''">
+				and username like "%"#{username}"%"
+			</if>
+		</where>
+	</select>
+
+	<!--
+        foreach的使用
+        select * from user where id in (1,2,3)
+     -->
+	<select id="queryUserByIds" parameterType="QueryVo" resultType="User">
+		<include refid="userFields"/>
+		<where>
+			id in
+			<foreach collection="idList" item="id" separator="," open="(" close=")">
+				${id}
+			</foreach>
+		</where>
+	</select>
+
+	<select id="queryUserByIdsOfArray" parameterType="list" resultType="User">
+		<include refid="userFields"/>
+		<where>
+			id in
+			<!-- 如果是List集合,collection就是list -->
+			<foreach collection="array" item="id" separator="," open="(" close=")">
+				${id}
+			</foreach>
+		</where>
+	</select>
+
+	<select id="queryUserByIdsOfList" parameterType="Integer" resultType="User">
+		<include refid="userFields"/>
+		<where>
+			id in
+			<!-- 如果是List集合,collection就时list -->
+			<foreach collection="list" item="id" separator="," open="(" close=")">
+				${id}
+			</foreach>
+		</where>
+	</select>
+
+	<select id="queryUserByIdsOfMap" parameterType="map" resultType="User">
+		<include refid="userFields"/>
+		<where>
+			id in
+			<foreach collection="ids"  item="id" separator="," open="(" close=")">
+				${id}
+			</foreach>
+		</where>
+	</select>
+
+	<select id="queryUserByVoIds" parameterType="queryvo" resultType="User">
+		<include refid="userFields"/>
+		<where>
+			<if test="ids != null">
+				<foreach collection="ids" item="userid" open="and (" close=")" separator="or">
+					id=#{userid}
+				</foreach>
+			</if>
+		</where>
+	</select>
+
+
+	<!-- 多表联合查询 一个USER对应多张订单-->
+	<select id="queryAllUser" resultMap="allUserMap">
+		select o.id,o.user_id,o.number,o.createtime,u.username,u.sex,u.address,u.birthday
+		from `user` u left join orders o on o.user_id = u.id
+	</select>
+	<resultMap id="allUserMap" type="com.z2xinyu.mybatis.config.po.User">
+		<id column="id" property="id"/>
+		<result column="username" property="username"/>
+		<result column="sex" property="sex"/>
+		<result column="birthday" property="birthday"/>
+		<result column="address" property="address"/>
+		<!--
+			指定集合中的元素类型
+			javaType 1对1
+			ofType 1对多
+		-->
+		<collection property="orderList" ofType="Order">
+			<id column="id" property="id"/>
+			<result column="user_id" property="userId"/>
+			<result column="number" property="number"/>
+			<result column="createtime" property="createtime"/>
+		</collection>
+	</resultMap>
+
+
+	<select id="findUserInfo" resultMap="UserOrdersLazyLoadingResultMap">
+		select * from user where id=#{id}
+	</select>
+
+	<resultMap id="UserOrdersLazyLoadingResultMap" type="com.z2xinyu.mybatis.config.po.User">
+		<id column="id" property="id"/>
+		<result column="username" property="username"/>
+		<result column="sex" property="sex"/>
+		<result column="birthday" property="birthday"/>
+		<result column="address" property="address"/>
+		<!--fetchType控制局部的加载策略，优于settings中的全局，lazy:懒加载，eager：立即加载-->
+		<collection property="orderList" ofType="User" select="com.z2xinyu.mybatis.config.mapper.OrderMapper.findByUserId"
+					 column="id" fetchType="lazy"/>
+	</resultMap>
+
+
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace：命名空间，用于隔离sql，还有一个很重要的作用，Mapper动态代理开发的时候使用，需要指定Mapper的类路径 -->
+<mapper namespace="com.z2xinyu.mybatis.config.po.User" >
+
+    <!-- id:statement的id 或者叫做sql的id-->
+    <!-- parameterType:声明输入参数的类型 -->
+    <!-- resultType:声明输出结果的类型，应该填写pojo的全路径 -->
+    <!-- #{}：输入参数的占位符，相当于jdbc的？ 可以防止sql注入-->
+    <select id="queryUserById" parameterType="Integer"
+            resultType="User">
+        SELECT * FROM `user` WHERE id = #{id}
+    </select>
+    <!--
+        #{} 不会加乱加"",根据parameterType来匹配
+        ${} 会加引号，用${}只能写value
+        这里如果要用#，就要字符串拼接
+    -->
+    <select id="queryUserByUserName" parameterType="String" resultType="com.z2xinyu.mybatis.config.po.User">
+        select * from `user` where username like '%${value}%'
+        <!--select * from user where username like "%"#{haha}"%"-->
+    </select>
+
+    <insert id="insert" parameterType="com.z2xinyu.mybatis.config.po.User">
+        <!-- selectKey 标签实现主键返回 -->
+        <!-- keyColumn:主键对应的表中的哪一列 -->
+        <!-- keyProperty：主键对应的pojo中的哪一个属性 -->
+        <!-- order：设置在执行insert语句前执行查询id的sql，还是在执行insert语句之后执行查询id的sql -->
+        <!-- resultType：设置返回的id的类型 -->
+        <selectKey keyColumn="id" keyProperty="id" order="AFTER" resultType="int">
+            <!--mysql自增主键返回-->
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into `user` (username,birthday,address,sex) values (#{username},#{birthday},#{address},#{sex})
+    </insert>
+
+    <update id="updateUser" parameterType="com.z2xinyu.mybatis.config.po.User">
+        update user
+        set username=#{username},
+            sex=#{sex},
+            birthday=#{birthday},
+            address=#{address}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteUserById" parameterType="Integer">
+        delete from user where id = #{id}
+    </delete>
+</mapper>

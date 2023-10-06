@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 写Sql语句，namespace,Mapper动态代理开发的时候使用，需要指定Mapper的类路径   -->
+<mapper namespace="com.z2xinyu.mybatis.config.mapper.OrderMapper">
+
+    <!-- id是resultMap的id，用于映射select中的resultMap,type是结果集映射的pojo-->
+    <resultMap id="orderMap" type="Order">
+        <!-- 名字相同的会自动完成映射，不一样的手动设置 -->
+        <!--id主键，必须要定义；property是id在pojo的名字，column是id在表中的名字-->
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <!--result用来定义普通属性-->
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="number" column="numer" jdbcType="VARCHAR"/>
+        <result property="createtime" column="createtime" jdbcType="VARCHAR"/>
+        <result property="note" column="note" jdbcType="VARCHAR"/>
+    </resultMap>
+    <insert id="insert" parameterType="order">
+        insert into orders (user_id, number,createtime,note) values (#{userId},#{number},#{createtime},#{note})
+    </insert>
+    <update id="update" parameterType="order">
+        update orders
+        set number =#{number},
+        note=#{note}
+        <where>
+            id = #{id}
+        </where>
+    </update>
+
+    <!--<select id="queryAllOrder" resultType="Order">-->
+    <select id="queryAllOrder" resultMap="orderMap">
+        <!--
+            没有设置映射，因为pojo和表列不一致，所以user_id无法完成映射,输出为null
+            所以使用resultMap来完成映射，resultMap是结果集，
+            select中的resultMap起个名字，用来找到下面的已经把结果集完成映射的type
+            这个type对应的就是resultMap
+         -->
+        select * from orders
+    </select>
+
+
+    <!-- 多表联合查询 一个订单对应一个USER-->
+    <select id="selectAllOrder" resultMap="allMap">
+        select o.id,o.user_id,o.number,o.createtime,u.username,u.sex,u.address,u.birthday
+        from orders o left join `user` u on o.user_id = u.id
+    </select>
+
+    <resultMap id="allMap" type="Order">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="number" property="number"/>
+        <result column="createtime" property="createtime"/>
+        <association property="user" javaType="User">
+            <id column="user_id" property="id"/>
+            <result column="username" property="username"/>
+            <result column="sex" property="sex"/>
+        </association>
+    </resultMap>
+
+
+    <select id="findByUserId" resultType="com.z2xinyu.mybatis.config.po.Order">
+        select * from order where user_id=#{id}
+    </select>
+</mapper>

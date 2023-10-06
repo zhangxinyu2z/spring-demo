@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.z2xinyu.mvc.mybatis.dao.ItemsMapper" >
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from items
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.z2xinyu.mvc.mybatis.po.Items" useGeneratedKeys="true" keyProperty="id" >
+    insert into items (name, price, pic, 
+      createtime, detail)
+    values (#{name,jdbcType=VARCHAR}, #{price,jdbcType=REAL}, #{pic,jdbcType=VARCHAR}, 
+      #{createtime,jdbcType=TIMESTAMP}, #{detail,jdbcType=LONGVARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.z2xinyu.mvc.mybatis.po.Items" >
+    update items
+    set name = #{name,jdbcType=VARCHAR},
+      price = #{price,jdbcType=REAL},
+      pic = #{pic,jdbcType=VARCHAR},
+      createtime = #{createtime,jdbcType=TIMESTAMP},
+      detail = #{detail,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultType="com.z2xinyu.mvc.mybatis.po.Items" parameterType="java.lang.Integer" >
+    select id, name, price, pic, createtime, detail
+    from items
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultType="com.z2xinyu.mvc.mybatis.po.Items" >
+    select * from items
+  </select>
+</mapper>

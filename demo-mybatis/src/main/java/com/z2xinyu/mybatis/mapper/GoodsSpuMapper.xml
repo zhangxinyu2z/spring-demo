@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 写Sql语句，namespace,Mapper动态代理开发的时候使用，需要指定Mapper的类路径   -->
+<mapper namespace="com.z2xinyu.mybatis.mapper.GoodsSpuMapper">
+    <select id="queryAllGoodsSpuList" resultType="com.z2xinyu.mybatis.po.GoodsSpu">
+        select * from goods_spu
+    </select>
+</mapper>

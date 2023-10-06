@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+    <!-- 引入 jdbc.properties -->
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+    <!-- 配置dbcp连接池,destory-method当前连接不使用的时候放回连接池 -->
+    <bean id="dbcpDataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="maxTotal" value="10"/>
+        <property name="maxIdle" value="5"/>
+    </bean>
+
+    <!-- 创建sqlSessionFactory，用来得到sqlSession -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 引入dbcp数据源 -->
+        <property name="dataSource" ref="dbcpDataSource"/>
+        <!-- 注入mybatis配置文件 -->
+        <property name="configLocation" value="classpath:sqlMapConfig.xml"/>
+    </bean>
+
+    <!--
+        配置bean交给spring管理，注入sqlSessionFactory
+    -->
+    <bean id="goodsSpuDao" class="com.z2xinyu.mybatis.dao.GoodsSpuDaoImpl">
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+    </bean>
+
+
+    <!--使用mybatis动态代理的方式-->
+
+    <!--方式一：使用工厂来生成Mapper的实现类-->
+<!--    <bean id="goodsSpuMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        &lt;!&ndash;同时配置sqlSessionFactory和sqlSessionTemplate，会启用sqlSessionTemplate，而sqlSessionFactory作废&ndash;&gt;
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+        &lt;!&ndash;映射接口&ndash;&gt;
+        <property name="mapperInterface" value="com.z2xinyu.mybatis.mapper.GoodsSpuMapper"/>
+    </bean>-->
+
+    <!--方式二： Mapper动态代理方式，使用扫描的方式 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 不需要注入sqlSessionFactory,因为sqlSessionFactory在Spring容器中，会自动去查找-->
+        <!--Spring提供的配置元素，扫描指定的包及其子包，生成Mapper接口的实现类。获取实现类是通过接口的Class对象-->
+        <property name="basePackage" value="com.z2xinyu.mybatis.mapper"/>
+    </bean>
+</beans>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+	<!--引入jdbc驱动配置信息-->
+	<context:property-placeholder location="classpath*:jdbc.properties"/>
+
+	<!-- 数据库连接池 -->
+	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driver}"/>
+		<property name="url" value="${jdbc.url}"/>
+		<property name="username"  value="${jdbc.username}"/>
+		<property name="password"  value="${jdbc.password}"/>
+		<property name="maxTotal" value="10" />
+		<property name="maxIdle" value="5" />
+	</bean>
+
+	<!--整合mybatis-->
+	<!-- sqlSessionFactory，用来获取sqlSession-->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- datasource-->
+		<property name="dataSource" ref="dataSource"/>
+		<!-- sqlmap configure xml -->
+		<property name="configLocation" value="classpath:mybatis-config.xml"/>
+		<!--这一步相当于mybatis配置文件中的<mapper>标签配置-->
+		<property name="mapperLocations">
+			<list>
+				<value>classpath*:com/z2xinyu/mvc/mybatis/dao/*.xml</value>
+			</list>
+		</property>
+ 	</bean>
+
+	<!-- 指定扫描包，将mapper接口生成的代理注入到spring-->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!--如果只有一个数据源，不必指定sqlSessionFactory-->
+		<!--MapperScannerConfigurer：https://www.cnblogs.com/jpfss/p/7799806.html-->
+		<property name="basePackage" value="com.arnoer.ssm.dao"/>
+	</bean>
+
+	<!-- 通用 Mapper -->
+<!--	<bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.study.ssm.dao"/>
+		<property name="properties">
+			<value>
+				mappers=tk.mybatis.mapper.common.Mapper
+			</value>
+		</property>
+	</bean>-->
+
+	<!--使用事务管理器-->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	<!--开启事务注解-->
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+
+
+</beans>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+
+    <context:property-placeholder location="classpath*:jdbc.properties"/>
+    <context:property-placeholder location="classpath*:log4j.properties"/>
+
+    <!--配置c3p0连接池-->
+    <bean id="c3p0dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${jdbc.driver}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <import resource="demo-jdbctemplate-beans.xml"/>
+
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="c3p0dataSource"/>
+    </bean>
+
+    <bean id="commonDao" class="com.z2xinyu.jdbctemplate.dao.CommonDao">
+        <property name="dataSource" ref="c3p0dataSource"/>
+    </bean>
+
+    <!--spring事务-->
+    <!--1、配置事务管理器,创建管理器对象-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="c3p0dataSource"/>
+    </bean>
+<!--
+
+    &lt;!&ndash;2、配置增强（通知）&ndash;&gt;
+    <tx:advice id="txadvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            &lt;!&ndash;
+                开启事务的方法
+                transfer*表示匹配所有transfer开头的方法
+                propagation:事务的传播行为，多个独立事务之间产生交互应该如何处理
+                isolation:事务的隔离级别
+            &ndash;&gt;
+            <tx:method name="transfer*" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+    &lt;!&ndash; 3、配置切面&ndash;&gt;
+    <aop:config>
+        &lt;!&ndash; 切入点：定义切入通知的匹配规则,此处表示匹配该service的所有方法&ndash;&gt;
+        <aop:pointcut id="pointcut"
+                      expression="execution(* com.z2xinyu.jdbctemplate.dao.GoodsSpuDao*(..))"/>
+        &lt;!&ndash; advisor想当于一个小型的切面：把增强应用到切入点&ndash;&gt;
+        <aop:advisor advice-ref="txadvice" pointcut-ref="pointcut"/>
+    </aop:config>
+
+-->
+
+    <!--注解的方式：检索@Transaction注解的类或方法 >> 可代替上面spring事务配置的代码-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+    <!--使用注解装配bean，扫描@component @service @mapper的类-->
+    <context:component-scan base-package="com.z2xinyu"/>
+
+</beans>
